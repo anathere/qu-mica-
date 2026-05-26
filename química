@@ -1,0 +1,247 @@
+export default function App() {
+  const React = window.React;
+  const { useState } = React;
+
+  const [mode, setMode] = useState("alcanos");
+  const [carbons, setCarbons] = useState(4);
+  const [doubleBond, setDoubleBond] = useState(1);
+  const [showHydrogens, setShowHydrogens] = useState(false);
+  const [studentName, setStudentName] = useState("");
+  const [answer, setAnswer] = useState("");
+  const [feedback, setFeedback] = useState("");
+
+  const prefixes = {
+    1: "met",
+    2: "et",
+    3: "prop",
+    4: "but",
+    5: "pent",
+    6: "hex",
+    7: "hept",
+    8: "oct",
+    9: "non",
+    10: "dec",
+  };
+
+  const getName = () => {
+    const prefix = prefixes[carbons] || "";
+
+    if (mode === "alcanos") {
+      return `${prefix}ano`;
+    }
+
+    if (carbons === 2) {
+      return `${prefix}eno`;
+    }
+
+    return `${doubleBond}-${prefix}eno`;
+  };
+
+  const validateAnswer = () => {
+    const correct = getName().toLowerCase().trim();
+    const student = answer.toLowerCase().trim();
+
+    if (student === correct) {
+      setFeedback("✅ ¡Correcto!");
+    } else {
+      setFeedback(`❌ Incorrecto. La respuesta correcta es: ${getName()}`);
+    }
+  };
+
+  const generateChain = () => {
+    const chain = [];
+
+    for (let i = 0; i < carbons; i++) {
+      let hydrogens = 2;
+
+      if (i === 0 || i === carbons - 1) {
+        hydrogens = 3;
+      }
+
+      if (mode === "alquenos") {
+        if (i === doubleBond - 1 || i === doubleBond) {
+          hydrogens -= 1;
+        }
+      }
+
+      chain.push({
+        carbon: `C`,
+        hydrogens,
+        bond:
+          mode === "alquenos" && i === doubleBond - 1
+            ? "═"
+            : i < carbons - 1
+            ? "─"
+            : "",
+      });
+    }
+
+    return chain;
+  };
+
+  const chain = generateChain();
+
+  return (
+    <div className="min-h-screen bg-slate-100 p-6 font-sans">
+      <div className="max-w-5xl mx-auto bg-white rounded-3xl shadow-xl p-8">
+        <h1 className="text-4xl font-bold text-center mb-2">
+          Química Orgánica Interactiva
+        </h1>
+
+        <p className="text-center text-gray-600 mb-8">
+          Trabajo con alcanos y alquenos
+        </p>
+
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
+          <div className="bg-slate-50 rounded-2xl p-5 border">
+            <h2 className="text-2xl font-semibold mb-4">Configuración</h2>
+
+            <label className="block mb-3">
+              <span className="font-medium">Nombre del estudiante</span>
+              <input
+                value={studentName}
+                onChange={(e) => setStudentName(e.target.value)}
+                className="w-full mt-1 border rounded-xl p-2"
+                placeholder="Escribe tu nombre"
+              />
+            </label>
+
+            <label className="block mb-3">
+              <span className="font-medium">Tipo de compuesto</span>
+              <select
+                value={mode}
+                onChange={(e) => setMode(e.target.value)}
+                className="w-full mt-1 border rounded-xl p-2"
+              >
+                <option value="alcanos">Alcanos</option>
+                <option value="alquenos">Alquenos</option>
+              </select>
+            </label>
+
+            <label className="block mb-3">
+              <span className="font-medium">Cantidad de carbonos</span>
+              <input
+                type="range"
+                min="1"
+                max="10"
+                value={carbons}
+                onChange={(e) => setCarbons(Number(e.target.value))}
+                className="w-full"
+              />
+              <div className="text-center text-lg font-bold">{carbons}</div>
+            </label>
+
+            {mode === "alquenos" && carbons > 1 && (
+              <label className="block mb-3">
+                <span className="font-medium">
+                  Posición del doble enlace
+                </span>
+                <input
+                  type="range"
+                  min="1"
+                  max={carbons - 1}
+                  value={doubleBond}
+                  onChange={(e) => setDoubleBond(Number(e.target.value))}
+                  className="w-full"
+                />
+                <div className="text-center text-lg font-bold">
+                  {doubleBond}
+                </div>
+              </label>
+            )}
+
+            <button
+              onClick={() => setShowHydrogens(!showHydrogens)}
+              className="bg-slate-800 text-white px-4 py-2 rounded-xl mt-2 hover:scale-105 transition"
+            >
+              {showHydrogens
+                ? "Ocultar Hidrógenos"
+                : "Mostrar Hidrógenos"}
+            </button>
+          </div>
+
+          <div className="bg-slate-50 rounded-2xl p-5 border">
+            <h2 className="text-2xl font-semibold mb-4">Actividad</h2>
+
+            <p className="mb-4 text-gray-700">
+              Observa la cadena carbonada, agrega mentalmente los hidrógenos y
+              escribe el nombre correcto según la nomenclatura.
+            </p>
+
+            <div className="bg-white rounded-2xl p-6 border text-center overflow-auto">
+              <div className="flex items-center justify-center flex-wrap gap-1 text-2xl font-mono">
+                {chain.map((item, index) => (
+                  <div key={index} className="flex items-center">
+                    <div className="flex flex-col items-center">
+                      {showHydrogens && (
+                        <span className="text-sm text-blue-700">H</span>
+                      )}
+
+                      <div className="border-2 border-slate-700 rounded-full w-14 h-14 flex items-center justify-center bg-slate-100">
+                        {item.carbon}
+                      </div>
+
+                      {showHydrogens && (
+                        <span className="text-sm text-blue-700">
+                          H{item.hydrogens > 1 ? item.hydrogens : ""}
+                        </span>
+                      )}
+                    </div>
+
+                    <span className="mx-1 text-3xl">{item.bond}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <label className="block font-medium mb-2">
+                Escribe el nombre del compuesto
+              </label>
+
+              <input
+                value={answer}
+                onChange={(e) => setAnswer(e.target.value)}
+                className="w-full border rounded-xl p-3"
+                placeholder="Ejemplo: butano"
+              />
+
+              <button
+                onClick={validateAnswer}
+                className="mt-4 bg-emerald-600 text-white px-5 py-3 rounded-xl hover:scale-105 transition"
+              >
+                Corregir
+              </button>
+
+              {feedback && (
+                <div className="mt-4 text-lg font-semibold">{feedback}</div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-50 border rounded-2xl p-6">
+          <h2 className="text-2xl font-semibold mb-4">
+            Tabla de ayuda rápida
+          </h2>
+
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-center">
+            {Object.entries(prefixes).map(([num, pref]) => (
+              <div
+                key={num}
+                className="bg-white rounded-xl border p-3 shadow-sm"
+              >
+                <div className="text-lg font-bold">{num} C</div>
+                <div className="text-gray-700">{pref}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-8 text-center text-gray-500 text-sm">
+          Aplicación didáctica para trabajar nomenclatura de hidrocarburos.
+        </div>
+      </div>
+    </div>
+  );
+}
